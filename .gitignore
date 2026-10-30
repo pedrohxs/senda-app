@@ -1,0 +1,31 @@
+# Android / Gradle
+*.iml
+.gradle/
+.kotlin/
+**/build/
+/local.properties
+local.properties
+/.idea/
+.DS_Store
+/captures
+.externalNativeBuild
+.cxx
+*.apk
+dist/
+
+# Signing e segredos locais
+*.jks
+*.keystore
+*.p12
+/keystore/
+keystore.properties
+
+# Logs de crash da JVM
+hs_err_pid*.log
+replay_pid*.log
+
+# Capturas de validação no emulador
+/shots/
+
+# Logs do script de release
+release-script*.log

@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <application>
+        <!-- Ferramenta de desenvolvimento: abre os desafios isolados para
+             conferir o layout sem depender do bloqueio real. Só existe em
+             builds debug. -->
+        <activity
+            android:name=".devtools.OverlayPreviewActivity"
+            android:exported="true"
+            android:theme="@style/Theme.Senda" />
+    </application>
+
+</manifest>

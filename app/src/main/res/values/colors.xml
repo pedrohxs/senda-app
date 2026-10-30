@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="dark_canvas">#111312</color>
+    <color name="card_surface">#1C1F1D</color>
+    <color name="surface_elevated">#202421</color>
+    <color name="border_muted">#2E332F</color>
+    <color name="text_warm_white">#EDEFEA</color>
+    <color name="text_muted_grey">#9AA196</color>
+    <color name="accent_sage">#A1B976</color>
+    <color name="accent_olive">#62734B</color>
+    <color name="icon_container">#262A27</color>
+    <color name="chart_warm">#E0B878</color>
+</resources>
