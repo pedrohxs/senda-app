@@ -51,6 +51,11 @@ O APK de debug é gerado em `app/build/outputs/apk/debug/app-debug.apk`. Para in
 - **Notificações**: manter a proteção visível e avisar se a acessibilidade for desativada.
 - **Administrador do dispositivo** (opcional): impedir desinstalações impulsivas.
 
+O serviço de acessibilidade é usado **só** para identificar qual app ou site está em
+primeiro plano e aplicar as regras configuradas. Ele não lê o que você digita, não
+captura a tela, não registra histórico de navegação e não envia nada para fora do
+aparelho — o app não declara a permissão de internet.
+
 ## Estrutura
 
 ```text
@@ -68,19 +73,48 @@ scripts/           # scripts de build (release assinada)
 
 ## Release assinada
 
+Cada pessoa que publicar uma build precisa da **própria chave**. O build de release
+falha de propósito quando ela não existe — assim ninguém publica, sem perceber, um
+APK assinado com a chave de debug (que é pública e igual em todo computador).
+
+Crie `keystore.properties` na raiz do projeto (não versionado, já está no `.gitignore`):
+
+```properties
+storeFile=keystore/senda-release.jks
+storePassword=SUA_SENHA
+keyAlias=senda
+keyPassword=SUA_SENHA
+```
+
+E gere o `.jks` uma única vez:
+
+```bash
+keytool -genkeypair -v -keystore keystore/senda-release.jks -alias senda \
+  -keyalg RSA -keysize 4096 -validity 10000 -storetype PKCS12
+```
+
+Depois:
+
 ```powershell
+# Windows: roda testes, compila com R8 e copia o APK com SHA-256
 powershell -ExecutionPolicy Bypass -File scripts\release.ps1
 ```
 
-O script roda os testes, compila com R8 e copia o APK para a Área de Trabalho, mostrando tamanho e SHA-256.
+```bash
+# Linux/macOS
+./gradlew assembleRelease
+```
 
-A assinatura usa `keystore/` + `keystore.properties`, que **não são versionados** (cada pessoa que for publicar precisa da própria chave). Sem esses arquivos o build de release cai na assinatura de debug.
+Para gerar um APK de release assinado com a chave de debug — **apenas para teste
+local, nunca para distribuir** — use a saída explícita:
+
+```bash
+./gradlew assembleRelease -Psenda.allowDebugSigning=true
+```
 
 > Quem já tem o app instalado com outra assinatura precisa desinstalar uma vez antes de instalar esta build; depois as atualizações funcionam por cima.
 
 ## Estado atual
-
-Versão `0.4.0` (versionCode 16).
 
 - As novidades de cada versão ficam em `app/src/main/assets/CHANGELOG.md` e aparecem em `Ajustes → Sobre → Novidades`.
 - Estado da proteção e últimos eventos: `Ajustes → Sobre → Diagnóstico`, com exportação em `.txt`.

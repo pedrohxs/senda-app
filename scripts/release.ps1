@@ -24,7 +24,8 @@
 [CmdletBinding()]
 param(
     [string] $Destination,
-    [switch] $SkipTests
+    [switch] $SkipTests,
+    [switch] $AllowDebugSigning
 )
 
 $ErrorActionPreference = 'Stop'
@@ -48,10 +49,13 @@ $env:GRADLE_OPTS = '-Dorg.gradle.jvmargs=-Xmx3g -Dorg.gradle.workers.max=2'
 $hasKey = (Test-Path (Join-Path $repoRoot 'keystore.properties'))
 if ($hasKey) {
     Write-Host 'Assinatura: chave de release (keystore.properties).' -ForegroundColor Green
+} elseif ($AllowDebugSigning) {
+    Write-Host 'Atenção: APK assinado com a chave de DEBUG (apenas teste local, não distribua).' -ForegroundColor Yellow
 } else {
-    Write-Host 'Aviso: keystore.properties ausente — o APK sairá assinado com a chave de debug.' -ForegroundColor Yellow
-    Write-Host '        Veja docs/RELEASE.md para criar a chave própria.' -ForegroundColor Yellow
+    throw ('keystore.properties ausente. Crie a chave de release (seção "Release assinada" do README) ' +
+        'ou use -AllowDebugSigning para gerar um APK de teste com a chave de debug.')
 }
+$allowDebugArg = if ($hasKey) { @() } else { @('-Psenda.allowDebugSigning=true') }
 
 if (-not $SkipTests) {
     Write-Host 'Rodando testes unitários...' -ForegroundColor Cyan
@@ -62,7 +66,7 @@ if (-not $SkipTests) {
 Write-Host 'Compilando release com R8...' -ForegroundColor Cyan
 # Daemons antigos seguram memória, e o R8 pode derrubar a JVM por falta dela.
 & $gradle '--stop' | Out-Null
-& $gradle ':app:assembleRelease' '--console=plain'
+& $gradle ':app:assembleRelease' '--console=plain' @allowDebugArg
 if ($LASTEXITCODE -ne 0) { throw 'Build de release falhou.' }
 
 $metadataPath = Join-Path $repoRoot 'app\build\outputs\apk\release\output-metadata.json'

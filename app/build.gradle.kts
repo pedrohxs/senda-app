@@ -10,8 +10,9 @@ plugins {
 }
 
 // Chave de release fora do repositório: `keystore.properties` e a pasta
-// `keystore/` ficam no .gitignore. Sem esses arquivos o build continua usando
-// a assinatura de debug, para não quebrar quem só quer compilar.
+// `keystore/` ficam no .gitignore. Build de release sem chave FALHA de propósito
+// (ver checagem abaixo); para um APK de teste com chave de debug existe a saída
+// explícita -Psenda.allowDebugSigning=true.
 val keystorePropertiesFile = rootProject.file("keystore.properties")
 val keystoreProperties = Properties().apply {
     if (keystorePropertiesFile.exists()) {
@@ -21,6 +22,21 @@ val keystoreProperties = Properties().apply {
 val hasReleaseKey = keystorePropertiesFile.exists() &&
     keystoreProperties.getProperty("storeFile") != null &&
     rootProject.file(keystoreProperties.getProperty("storeFile")).exists()
+val allowDebugSigning = providers.gradleProperty("senda.allowDebugSigning")
+    .orNull
+    ?.equals("true", ignoreCase = true) == true
+val releaseTaskRequested = gradle.startParameter.taskNames.any { task ->
+    task.contains("Release", ignoreCase = true) && !task.contains("ReleaseUnitTest", ignoreCase = true)
+}
+if (releaseTaskRequested && !hasReleaseKey && !allowDebugSigning) {
+    throw GradleException(
+        "Chave de release não encontrada.\n" +
+            "Crie keystore.properties (storeFile, storePassword, keyAlias, keyPassword) " +
+            "e o arquivo .jks indicado nele. Passo a passo no README, seção \"Release assinada\".\n" +
+            "Para gerar um APK de teste assinado com a chave de debug, use: " +
+            "-Psenda.allowDebugSigning=true (nunca distribua esse APK)."
+    )
+}
 
 android {
     namespace = "com.senda.app"
@@ -54,8 +70,9 @@ android {
         release {
             isMinifyEnabled = true
             isShrinkResources = true
-            // Chave própria quando `keystore.properties` existe; caso contrário,
-            // assinatura de debug para validar o R8 em qualquer máquina.
+            // Chave própria quando `keystore.properties` existe. O fallback para
+            // debug só é alcançável com -Psenda.allowDebugSigning=true, porque a
+            // checagem acima barra o build antes.
             signingConfig = if (hasReleaseKey) {
                 signingConfigs.getByName("release")
             } else {
