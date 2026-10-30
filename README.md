@@ -1,4 +1,4 @@
-# Senda
+# Senda - Time Control and Block Apps
 
 Aplicativo Android nativo para foco consciente, controle de tempo de tela e bloqueio de hábitos automáticos.
 
